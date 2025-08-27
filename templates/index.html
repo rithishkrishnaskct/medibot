@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Medical Drug Information Chatbot - Chat Interface{% endblock %}
+
+{% block content %}
+<div class="row h-100">
+    <!-- Sidebar -->
+    <div class="col-md-3 col-lg-2 bg-light border-end">
+        <div class="p-3">
+            <h6 class="text-muted mb-3">
+                <i class="fas fa-cog me-1"></i>Controls
+            </h6>
+            
+            <!-- File Upload -->
+            <div class="mb-3">
+                <label class="form-label small">Upload PDF</label>
+                <input type="file" class="form-control form-control-sm" id="pdfUpload" accept=".pdf">
+                <div class="form-text">Max 16MB</div>
+            </div>
+            
+            <!-- Clear Session -->
+            <button class="btn btn-outline-warning btn-sm w-100 mb-3" id="clearSession">
+                <i class="fas fa-trash me-1"></i>Clear Session
+            </button>
+            
+            <!-- Session Info -->
+            <div class="small text-muted">
+                <strong>Session ID:</strong><br>
+                <code class="small">{{ session_id[:8] }}...</code>
+            </div>
+        </div>
+        
+        <!-- Quick Examples -->
+        <div class="p-3 border-top">
+            <h6 class="text-muted mb-2">
+                <i class="fas fa-lightbulb me-1"></i>Try asking:
+            </h6>
+            <div class="d-grid gap-1">
+                <button class="btn btn-outline-primary btn-sm text-start quick-question" 
+                        data-question="What is the recommended dosage for Humira?">
+                    <small>Dosage for Humira</small>
+                </button>
+                <button class="btn btn-outline-primary btn-sm text-start quick-question" 
+                        data-question="What are the contraindications for adalimumab?">
+                    <small>Contraindications</small>
+                </button>
+                <button class="btn btn-outline-primary btn-sm text-start quick-question" 
+                        data-question="How should I store this medication?">
+                    <small>Storage instructions</small>
+                </button>
+                <button class="btn btn-outline-primary btn-sm text-start quick-question" 
+                        data-question="What are the common side effects?">
+                    <small>Side effects</small>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chat Area -->
+    <div class="col-md-9 col-lg-10 d-flex flex-column">
+        <!-- Chat Header -->
+        <div class="bg-white border-bottom p-3">
+            <div class="d-flex align-items-center">
+                <div class="me-3">
+                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width: 40px; height: 40px;">
+                        <i class="fas fa-robot text-white"></i>
+                    </div>
+                </div>
+                <div>
+                    <h5 class="mb-0">Medical Drug Information Assistant</h5>
+                    <small class="text-muted">
+                        <span id="status-indicator" class="badge bg-success">Online</span>
+                        Ask me about drug information, dosages, contraindications, and more
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chat Messages -->
+        <div class="flex-grow-1 overflow-auto p-3" id="chatMessages" style="height: 60vh;">
+            <!-- Welcome Message -->
+            <div class="message bot-message mb-3">
+                <div class="d-flex">
+                    <div class="me-2">
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 32px; height: 32px;">
+                            <i class="fas fa-robot text-white small"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="bg-light rounded p-3">
+                            <p class="mb-2">
+                                <strong>Welcome to the Medical Drug Information Chatbot!</strong> 🏥
+                            </p>
+                            <p class="mb-2">
+                                I can help you with:
+                            </p>
+                            <ul class="mb-2">
+                                <li>Drug dosage information</li>
+                                <li>Contraindications and precautions</li>
+                                <li>Side effects and interactions</li>
+                                <li>Storage and administration guidelines</li>
+                            </ul>
+                            <p class="mb-0">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    You can also upload PDF documents for me to analyze.
+                                </small>
+                            </p>
+                        </div>
+                        <small class="text-muted">Just now</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chat Input -->
+        <div class="border-top p-3">
+            <form id="chatForm">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="messageInput" 
+                           placeholder="Ask about drug information..." autocomplete="off">
+                    <button class="btn btn-primary" type="submit" id="sendButton">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+            <div class="form-text mt-1">
+                <i class="fas fa-shield-alt me-1"></i>
+                Only medical and drug-related questions will be answered
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mb-0">Processing your request...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Progress Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-upload me-2"></i>Uploading PDF
+                </h5>
+            </div>
+            <div class="modal-body">
+                <div class="progress mb-3">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" style="width: 0%"></div>
+                </div>
+                <p class="mb-0 text-center">Processing your PDF document...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Pass session ID to JavaScript
+    window.sessionId = "{{ session_id }}";
+</script>
+{% endblock %}

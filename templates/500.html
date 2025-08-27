@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error - Medical Drug Information Chatbot{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+        <div class="py-5">
+            <i class="fas fa-server text-danger" style="font-size: 4rem;"></i>
+            <h1 class="display-4 mt-3">500</h1>
+            <h2 class="mb-3">Internal Server Error</h2>
+            <p class="lead text-muted mb-4">
+                Something went wrong on our end. Please try again later.
+            </p>
+            <div class="d-grid gap-2 d-md-block">
+                <a href="{{ url_for('index') }}" class="btn btn-primary">
+                    <i class="fas fa-home me-2"></i>Go to Chat
+                </a>
+                <button class="btn btn-outline-secondary" onclick="window.location.reload()">
+                    <i class="fas fa-redo me-2"></i>Try Again
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
